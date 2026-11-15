@@ -1,0 +1,1 @@
+"""NameSSH desktop client."""
