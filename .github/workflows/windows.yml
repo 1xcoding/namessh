@@ -32,7 +32,7 @@ jobs:
           path: dist/NameSSH.exe
           if-no-files-found: error
       - name: Publish requested release
-        if: github.ref == 'refs/heads/arena/ed14dbb3-namessh' && github.event_name == 'push' && github.event.head_commit.message == 'Release NameSSH v0.1.0'
+        if: github.ref == 'refs/heads/arena/ed14dbb3-namessh' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Release NameSSH v0.1.0')
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
