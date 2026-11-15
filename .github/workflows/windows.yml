@@ -3,7 +3,7 @@ on:
   push:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -31,3 +31,12 @@ jobs:
           name: NameSSH-Windows
           path: dist/NameSSH.exe
           if-no-files-found: error
+      - name: Publish requested release
+        if: github.ref == 'refs/heads/arena/ed14dbb3-namessh' && github.event_name == 'push' && github.event.head_commit.message == 'Release NameSSH v0.1.0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create v0.1.0 dist/NameSSH.exe
+          --target ${{ github.sha }}
+          --title "NameSSH v0.1.0"
+          --notes "Первый выпуск для Windows: поиск SSH-серверов, подключение по паролю или ключу и интерактивный терминал. Сверяйте отпечаток сервера. EXE не подписан."
