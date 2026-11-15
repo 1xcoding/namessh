@@ -18,6 +18,14 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Build Windows executable
         run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name NameSSH main.py
+      - name: Smoke test executable startup
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath (Resolve-Path dist/NameSSH.exe) -PassThru
+          Start-Sleep -Seconds 15
+          $process.Refresh()
+          if ($process.HasExited) { throw "NameSSH exited during startup: $($process.ExitCode)" }
+          Stop-Process -Id $process.Id -Force
       - uses: actions/upload-artifact@v4
         with:
           name: NameSSH-Windows

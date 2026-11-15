@@ -1,4 +1,3 @@
-import ipaddress
 import socket
 import tempfile
 import threading
@@ -93,6 +92,18 @@ class CoreTests(unittest.TestCase):
             hostkey_name = f'[127.0.0.1]:{server.port}'
             client = paramiko.SSHClient(); client.load_host_keys(str(core.KNOWN_HOSTS))
             self.assertEqual(client.get_host_keys()[hostkey_name][key.get_name()], key)
+
+    def test_changed_host_key_is_rejected_without_confirmation(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(core, 'APP_DIR', Path(tmp)), patch.object(core, 'KNOWN_HOSTS', Path(tmp) / 'known_hosts'):
+            server = SSHServer(paramiko.RSAKey.generate(2048))
+            old_key = paramiko.RSAKey.generate(2048)
+            known = paramiko.HostKeys()
+            known.add(f'[127.0.0.1]:{server.port}', old_key.get_name(), old_key)
+            known.save(str(core.KNOWN_HOSTS))
+            try:
+                with self.assertRaises(paramiko.BadHostKeyException):
+                    core.connect_ssh('127.0.0.1', server.port, 'test', 'secret', '', lambda *a: self.fail('Must not prompt for changed key'))
+            finally: server.close()
 
     def test_rejected_key_is_not_saved(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(core, 'APP_DIR', Path(tmp)), patch.object(core, 'KNOWN_HOSTS', Path(tmp) / 'known_hosts'):
